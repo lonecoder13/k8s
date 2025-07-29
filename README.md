@@ -18,6 +18,13 @@ Update on K8s labs
 | 9     | Advanced: Volumes, StatefulSets, CronJobs | Real production examples              |
 
 
+
+Install prerequisites:
+
+sudo apt update && sudo apt install -y apt-transport-https ca-certificates curl
+
+
+
 PHASE 1: Cluster Setup (Real Environment)
 🔹 Lab 1: Setup Kubernetes Cluster with kubeadm
 Goal: Build a 3-node cluster using VMs
