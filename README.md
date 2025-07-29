@@ -19,9 +19,26 @@ Update on K8s labs
 
 
 
+I
+
+If you're setting up a Kubernetes cluster (master node):
 Install prerequisites:
 
+
 sudo apt update && sudo apt install -y apt-transport-https ca-certificates curl
+Disable swap (required for Kubernetes):
+
+sudo swapoff -a
+sudo sed -i '/ swap / s/^/#/' /etc/fstab
+Install Docker (or containerd):
+
+
+sudo apt install -y docker.io
+sudo systemctl enable docker
+sudo systemctl start docker
+
+Install kubeadm, kubelet, kubectl:
+Follow this official guide: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 
 
 
