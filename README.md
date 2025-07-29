@@ -5,6 +5,18 @@ k8 labs on local
 
 
 Update on K8s labs 
+| Phase | What You'll Do                            | What You'll Learn                     |
+| ----- | ----------------------------------------- | ------------------------------------- |
+| 1     | Set up a 3-node K8s cluster (VMs)         | kubeadm, kubelet, etcd, control plane |
+| 2     | Break & Fix Labs                          | Hands-on troubleshooting              |
+| 3     | Deploy Nginx App                          | Pod, Deployment, Service              |
+| 4     | Expose App with Ingress                   | Ingress controller, DNS               |
+| 5     | Add Monitoring                            | Prometheus, Grafana                   |
+| 6     | Handle Secrets & Configs                  | Secrets, ConfigMap                    |
+| 7     | Upgrade Cluster                           | Upgrade process                       |
+| 8     | CI/CD Setup                               | GitHub Actions → Deploy on cluster    |
+| 9     | Advanced: Volumes, StatefulSets, CronJobs | Real production examples              |
+
 
 PHASE 1: Cluster Setup (Real Environment)
 🔹 Lab 1: Setup Kubernetes Cluster with kubeadm
