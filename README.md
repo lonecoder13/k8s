@@ -30,9 +30,92 @@ Disable swap (required for Kubernetes):
 
 sudo swapoff -a
 sudo sed -i '/ swap / s/^/#/' /etc/fstab
+------------------------------------------------------------------------------------------------------------
+
 Install Docker (or containerd):
+🐳 Step-by-Step Docker Installation on Ubuntu 22.04 / 24.04
+✅ Step 1: Update and install dependencies
+bash
+Copy
+Edit
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg lsb-release
+✅ Step 2: Add Docker’s official GPG key
+bash
+Copy
+Edit
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+  sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+✅ Step 3: Set up Docker repository
+bash
+Copy
+Edit
+echo \
+  "deb [arch=$(dpkg --print-architecture) \
+  signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+✅ Step 4: Install Docker Engine
+bash
+Copy
+Edit
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io
+✅ Step 5: Start and enable Docker
+bash
+Copy
+Edit
+sudo systemctl enable docker
+sudo systemctl start docker
+✅ Step 6: (Optional) Allow current user to run Docker without sudo
+bash
+Copy
+Edit
+sudo usermod -aG docker $USER
+⚠️ You’ll need to log out and log back in for this to take effect.
+
+✅ Step 7: Verify installation
+bash
+Copy
+Edit
+docker version
+docker run hello-world
+
+-----------------------------------------------------------------------------------------------
 
 
+1. Turn off swap (K8s requires swap to be off)
+bash
+Copy
+Edit
+sudo swapoff -a
+sudo sed -i '/ swap / s/^/#/' /etc/fstab
+2. Install required packages
+bash
+Copy
+Edit
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl
+3. Add Kubernetes GPG key
+bash
+Copy
+Edit
+sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+4. Add Kubernetes apt repo
+bash
+Copy
+Edit
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | \
+sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
+5. Install Kubernetes components
+bash
+Copy
+Edit
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
 sudo apt install -y docker.io
 sudo systemctl enable docker
 sudo systemctl start docker
