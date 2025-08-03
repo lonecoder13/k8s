@@ -1,0 +1,121 @@
+bash
+Copy
+Edit
+kubectl version                         # Show client/server versions
+kubectl cluster-info                    # Show cluster info
+kubectl config view                     # Show kubeconfig settings
+kubectl config use-context <context>   # Switch context
+kubectl get all                         # Show all resources in current namespace
+📦 PODS
+Copy
+Edit
+kubectl get pods                             # List pods
+kubectl get pods -n <namespace>             # List pods in a namespace
+kubectl describe pod <pod-name>             # Describe a pod
+kubectl delete pod <pod-name>               # Delete a pod
+kubectl exec -it <pod-name> -- /bin/bash    # Shell into pod (bash)
+kubectl exec -it <pod-name> -- /bin/sh      # Shell into pod (sh)
+kubectl logs <pod-name>                     # Pod logs
+kubectl logs -f <pod-name>                  # Stream logs
+🛠️ DEPLOYMENTS
+bash
+Copy
+Edit
+kubectl create deployment nginx --image=nginx     # Create deployment
+kubectl get deployments                          # List deployments
+kubectl describe deployment <name>               # Deployment details
+kubectl rollout status deployment <name>         # Rollout status
+kubectl rollout undo deployment <name>           # Rollback deployment
+kubectl delete deployment <name>                 # Delete deployment
+🔁 REPLICASETS & RCs
+bash
+Copy
+Edit
+kubectl get rs                     # List ReplicaSets
+kubectl describe rs <name>        # Describe a ReplicaSet
+kubectl delete rs <name>          # Delete ReplicaSet
+🌐 SERVICES
+bash
+Copy
+Edit
+kubectl expose deployment nginx --port=80 --type=NodePort   # Expose deployment as service
+kubectl get svc                                             # List services
+kubectl describe svc <name>                                 # Service details
+kubectl delete svc <name>                                   # Delete service
+📂 CONFIGMAPS & SECRETS
+bash
+Copy
+Edit
+kubectl create configmap my-config --from-literal=key=value   # Create configmap
+kubectl get configmap                                         # List configmaps
+kubectl describe configmap <name>                             # Configmap details
+
+kubectl create secret generic my-secret --from-literal=pwd=1234  # Create secret
+kubectl get secrets                                               # List secrets
+kubectl describe secret <name>                                   # Secret details
+📁 VOLUMES & PVC
+bash
+Copy
+Edit
+kubectl get pvc                # List PersistentVolumeClaims
+kubectl describe pvc <name>   # PVC details
+📑 NAMESPACES
+bash
+Copy
+Edit
+kubectl get ns                      # List namespaces
+kubectl create ns my-namespace     # Create namespace
+kubectl delete ns my-namespace     # Delete namespace
+kubectl get pods -n my-namespace   # Pods in namespace
+📋 YAML / RESOURCE FILES
+bash
+Copy
+Edit
+kubectl apply -f app.yaml                     # Create/update resources
+kubectl delete -f app.yaml                    # Delete resources
+kubectl edit deployment <name>                # Edit a deployment live
+kubectl get deployment <name> -o yaml         # Export deployment to YAML
+🔍 METRICS & RESOURCE USAGE
+Make sure Metrics Server is installed.
+
+bash
+Copy
+Edit
+kubectl top node         # Node CPU/memory
+kubectl top pod          # Pod CPU/memory
+🧪 DEBUGGING
+bash
+Copy
+Edit
+kubectl describe pod <pod>                          # Pod events and conditions
+kubectl logs <pod>                                  # View logs
+kubectl exec -it <pod> -- /bin/sh                   # Debug into pod
+kubectl get events --sort-by='.metadata.creationTimestamp'   # Events timeline
+📎 LABELS & SELECTORS
+bash
+Copy
+Edit
+kubectl get pods --show-labels                 # View labels
+kubectl label pod <pod> env=dev                # Add label to pod
+kubectl get pods -l env=dev                    # Filter pods by label
+kubectl delete pod -l env=dev                  # Delete pods by label
+🧰 MISC TOOLS
+bash
+Copy
+Edit
+kubectl api-resources                         # List all resource types
+kubectl explain pod.spec.containers           # Explain field spec
+📈 PORT FORWARDING
+bash
+Copy
+Edit
+kubectl port-forward svc/nginx 8080:80        # Forward service port
+kubectl port-forward pod/<pod-name> 8080:80   # Forward pod port
+📦 HELM (if using Helm)
+bash
+Copy
+Edit
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install nginx bitnami/nginx
+helm list
+helm uninstall nginx
