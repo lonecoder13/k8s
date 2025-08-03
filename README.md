@@ -19,274 +19,264 @@ Update on K8s labs
 
 
 
-I
 
-If you're setting up a Kubernetes cluster (master node):
-Install prerequisites:
+# Kubernetes Labs: Local Setup & Practice Guide
 
+## Phase 1: Cluster Setup
 
-sudo apt update && sudo apt install -y apt-transport-https ca-certificates curl
-Disable swap (required for Kubernetes):
+### Lab 1: Setup Kubernetes Cluster with kubeadm
 
+* **Goal**: Build a 3-node cluster using VMs (VirtualBox + Ubuntu)
+* **Learn**: Cluster bootstrap, kubelet, CNI (Calico), joining nodes
+
+#### Setup Checklist
+
+##### 1. System Preparation (on all nodes)
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y curl gnupg2 apt-transport-https ca-certificates software-properties-common
+```
+
+##### 2. Disable Swap (required for kubelet)
+
+```bash
 sudo swapoff -a
 sudo sed -i '/ swap / s/^/#/' /etc/fstab
-------------------------------------------------------------------------------------------------------------
+```
 
-Install Docker (or containerd):
-🐳 Step-by-Step Docker Installation on Ubuntu 22.04 / 24.04
-✅ Step 1: Update and install dependencies
-bash
-Copy
-Edit
-sudo apt update
-sudo apt install -y ca-certificates curl gnupg lsb-release
-✅ Step 2: Add Docker’s official GPG key
-bash
-Copy
-Edit
+##### 3. Load Kernel Modules and Set Sysctl Params
+
+```bash
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+sudo sysctl --system
+```
+
+##### 4. Install containerd
+
+```bash
+sudo apt install -y containerd
+sudo mkdir -p /etc/containerd
+containerd config default | sudo tee /etc/containerd/config.toml
+```
+
+Edit `/etc/containerd/config.toml`:
+
+```toml
+SystemdCgroup = true
+```
+
+```bash
+sudo systemctl restart containerd
+sudo systemctl enable containerd
+```
+
+##### 5. Install Kubernetes
+
+```bash
 sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-  sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-✅ Step 3: Set up Docker repository
-bash
-Copy
-Edit
-echo \
-  "deb [arch=$(dpkg --print-architecture) \
-  signed-by=/etc/apt/keyrings/docker.gpg] \
-  https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-✅ Step 4: Install Docker Engine
-bash
-Copy
-Edit
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
 sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io
-✅ Step 5: Start and enable Docker
-bash
-Copy
-Edit
-sudo systemctl enable docker
-sudo systemctl start docker
-✅ Step 6: (Optional) Allow current user to run Docker without sudo
-bash
-Copy
-Edit
-sudo usermod -aG docker $USER
-⚠️ You’ll need to log out and log back in for this to take effect.
-
-✅ Step 7: Verify installation
-bash
-Copy
-Edit
-docker version
-docker run hello-world
-
------------------------------------------------------------------------------------------------
-
-
-1. Turn off swap (K8s requires swap to be off)
-bash
-Copy
-Edit
-sudo swapoff -a
-sudo sed -i '/ swap / s/^/#/' /etc/fstab
-2. Install required packages
-bash
-Copy
-Edit
-sudo apt-get update
-sudo apt-get install -y apt-transport-https ca-certificates curl
-3. Add Kubernetes GPG key
-bash
-Copy
-Edit
-sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-4. Add Kubernetes apt repo
-bash
-Copy
-Edit
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | \
-sudo tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
-5. Install Kubernetes components
-bash
-Copy
-Edit
-sudo apt-get update
-sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
-sudo apt install -y docker.io
-sudo systemctl enable docker
-sudo systemctl start docker
+```
 
-Install kubeadm, kubelet, kubectl:
-Follow this official guide: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+##### 6. Initialize Kubernetes Cluster (on master node)
 
+```bash
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16
+```
 
+##### 7. Setup kubeconfig for current user
 
-PHASE 1: Cluster Setup (Real Environment)
-🔹 Lab 1: Setup Kubernetes Cluster with kubeadm
-Goal: Build a 3-node cluster using VMs
+```bash
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
 
-Tools: VirtualBox + Ubuntu + kubeadm + Calico
+##### 8. Install Calico CNI
 
-What You’ll Learn: Cluster bootstrap, kubelet, CNI, joining nodes
+```bash
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+```
 
-🛠️ Break it: Delete /etc/kubernetes/manifests/kube-apiserver.yaml and recover it.
+##### 9. Allow Pods on Control Plane (for single-node setup)
 
-🔧 PHASE 2: Core Kubernetes Resources
-🔹 Lab 2: Pods, ReplicaSets, Deployments
-Create a Deployment (nginx) with 3 replicas
+```bash
+kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+```
 
-Scale up/down, restart pods
+##### 10. Test Setup
 
-Use kubectl explain and describe
+```bash
+kubectl get nodes
+kubectl get pods -A
+```
 
-Break it: Force delete all pods and watch self-healing
+##### 11. Create Namespace & Pods
 
-🔹 Lab 3: Services & DNS
-Create ClusterIP, NodePort
+```bash
+kubectl create ns test-pod
+kubectl apply -f pod-a.yaml -n test-pod
+kubectl apply -f pod-b.yaml -n test-pod
+kubectl get pods -n test-pod -o wide
+```
 
-Deploy multi-container pod (frontend/backend) with Service discovery
+##### 12. Debug Pod Communication
 
-Curl across services to test DNS
+```bash
+kubectl exec -n test-pod pod-a -- ping -c 4 pod-b
+kubectl exec -n test-pod pod-a -- nslookup pod-b
+```
 
-Break it: Delete CoreDNS pods and troubleshoot DNS failure
+---
 
-🔹 Lab 4: Namespaces, Labels & Selectors
-Create multiple namespaces for dev, staging
+## Phase 2: Core Kubernetes Resources
 
-Label resources and filter with selectors
+### Lab 2: Pods, ReplicaSets, Deployments
 
-Break it: Deploy in wrong namespace and debug "app not working"
+* Deploy nginx with 3 replicas
+* Scale up/down, restart pods
+* Use `kubectl explain`, `describe`
+* Break it: Force delete pods and watch auto-heal
 
-🔐 PHASE 3: Configuration & Secrets
-🔹 Lab 5: ConfigMaps & Secrets
-Externalize app config using ConfigMap
+### Lab 3: Services & DNS
 
-Inject DB credentials via Secret (env & volume)
+* Create ClusterIP, NodePort services
+* Deploy multi-container pods
+* Test DNS with curl
+* Break it: Delete CoreDNS and debug
 
-Break it: Mount incorrect secret key in volume
+### Lab 4: Namespaces, Labels & Selectors
 
-🔹 Lab 6: ServiceAccounts, RBAC
-Create custom ServiceAccount with limited permissions
+* Create namespaces for dev, staging
+* Label/filter with selectors
+* Break it: Wrong namespace deployment
 
-Test access using kubectl auth can-i
+---
 
-Break it: Revoke access and debug “forbidden” error
+## Phase 3: Configuration & Secrets
 
-🌐 PHASE 4: Networking & Ingress
-🔹 Lab 7: CNI Plugin & Pod Networking
-Use calicoctl or cilium to inspect traffic rules
+### Lab 5: ConfigMaps & Secrets
 
-Ping between pods across nodes
+* Use ConfigMap for config
+* Inject Secrets via env/volume
+* Break it: Use wrong key in mount
 
-Break it: Block traffic between pods using Calico NetworkPolicy
+### Lab 6: ServiceAccounts, RBAC
 
-🔹 Lab 8: Ingress Controller with TLS
-Deploy NGINX Ingress Controller
+* Create limited ServiceAccounts
+* Test with `kubectl auth can-i`
+* Break it: Revoke access and debug
 
-Route 2 apps on same IP via host/path
+---
 
-Add TLS using cert-manager and self-signed certs
+## Phase 4: Networking & Ingress
 
-Break it: Misconfigure ingress and debug “404 Not Found”
+### Lab 7: CNI Plugin & Networking
 
-💾 PHASE 5: Storage & StatefulSets
-🔹 Lab 9: Persistent Volumes & Claims
-Deploy MySQL with PVC
+* Use `calicoctl`/`cilium` to inspect
+* Block traffic with NetworkPolicy
 
-Use hostPath or OpenEBS if available
+### Lab 8: Ingress Controller with TLS
 
-Break it: Delete PVC and watch MySQL fail
+* Use NGINX Ingress
+* Route with host/path
+* Add TLS via cert-manager
+* Break it: Misconfig ingress, debug 404
 
-🔹 Lab 10: StatefulSets
-Deploy Cassandra or Redis with StatefulSet
+---
 
-Inspect stable hostnames and storage retention
+## Phase 5: Storage & StatefulSets
 
-Break it: Kill one pod and see recovery process
+### Lab 9: Persistent Volumes & PVCs
 
-🧠 PHASE 6: Advanced Concepts
-🔹 Lab 11: Horizontal Pod Autoscaler
-Deploy CPU-based autoscaling using metrics-server
+* Deploy MySQL with PVC
+* Break it: Delete PVC, watch failure
 
-Stress app using hey or ab
+### Lab 10: StatefulSets
 
-Break it: Remove metrics-server and observe no scaling
+* Deploy Redis/Cassandra
+* Observe stable hostname/storage
+* Break it: Kill pod, see recovery
 
-🔹 Lab 12: Taints, Tolerations, Node Affinity
-Create tainted nodes, schedule pods using toleration
+---
 
-Assign pods to zone-specific nodes
+## Phase 6: Advanced Concepts
 
-Break it: Remove toleration and see unschedulable pods
+### Lab 11: Horizontal Pod Autoscaler
 
-🔹 Lab 13: Helm Charts
-Install Prometheus using Helm
+* Use metrics-server
+* Stress app via `hey`, `ab`
+* Break it: Remove metrics-server
 
-Create custom Helm chart for your app
+### Lab 12: Taints, Tolerations, Affinity
 
-Break it: Pass wrong values.yaml and debug deployment
+* Use taints, node affinity
+* Break it: Unschedulable pods
 
-📊 PHASE 7: Observability & Logging
-🔹 Lab 14: Prometheus + Grafana Monitoring
-Deploy kube-prometheus stack
+### Lab 13: Helm Charts
 
-Setup dashboards and alerts
+* Install Prometheus via Helm
+* Make custom Helm chart
+* Break it: Wrong `values.yaml`
 
-Break it: Kill a node and observe alert triggering
+---
 
-🔹 Lab 15: Centralized Logging with Loki or EFK
-Forward logs to Loki or Elasticsearch
+## Phase 7: Observability & Logging
 
-Query logs via Grafana or Kibana
+### Lab 14: Prometheus + Grafana
 
-Break it: Stop Fluentd or Promtail and verify logs not collected
+* Use kube-prometheus stack
+* Create alerts/dashboards
+* Break it: Kill node, see alert
 
-⚙️ PHASE 8: Real-World Deployments
-🔹 Lab 16: WordPress + MySQL
-Deploy WordPress + MySQL with persistent volumes
+### Lab 15: Centralized Logging
 
-Expose with Ingress, enable scaling
+* Use Loki or EFK
+* View logs via Grafana/Kibana
+* Break it: Stop Fluentd/Promtail
 
-Break it: Delete MySQL pod and observe data persistence
+---
 
-🔹 Lab 17: CI/CD Integration
-Create GitHub Action to auto-deploy app to k8s
+## Phase 8: Real-World Deployments
 
-Use kubectl apply or Helm in pipeline
+### Lab 16: WordPress + MySQL
 
-Break it: Commit a broken manifest and rollback
+* Use PVCs, Ingress
+* Test data persistence
+* Break it: Delete MySQL pod
 
-🔁 PHASE 9: Backup, Upgrade, Disaster Recovery
-🔹 Lab 18: Backup Cluster with Velero
-Backup namespace, PVCs, etc.
+### Lab 17: CI/CD Integration
 
-Delete & restore workloads
+* GitHub Actions → `kubectl apply`/Helm
+* Break it: Bad commit, rollback
 
-Break it: Simulate node failure and recover
+---
 
-🔹 Lab 19: Upgrade Kubernetes Safely
-Upgrade from v1.29 to v1.30 using kubeadm
+## Phase 9: Backup, Upgrade, Chaos
 
-Drain node, upgrade, uncordon
+### Lab 18: Velero Backup
 
-Break it: Upgrade without draining and fix impact
+* Backup namespaces, PVCs
+* Simulate failure, restore
 
-🔹 Lab 20: Chaos Engineering (Simulate Failures)
-Use chaos-mesh or manual failures (kill kubelet, delete etcd pod)
+### Lab
 
-Monitor system behavior and recovery
-
-🧰 Tools You’ll Use Throughout
-kubectl, kubeadm, kustomize, helm
-
-prometheus, grafana, loki, fluentd
-
-minio, velero
-
-cilium, calico
-
-kind, k9s, lens
