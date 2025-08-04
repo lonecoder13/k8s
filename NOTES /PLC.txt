@@ -8,6 +8,7 @@ Lifecycle Flow Summary !
                +------------------------+
                |   ContainerCreating    |
                +------------------------+
+
                            |
                            v
                        +-------+
