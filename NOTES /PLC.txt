@@ -1,0 +1,42 @@
+Lifecycle Flow Summary !
+
+                  +------------------+
+                  |    Pending       |
+                  +------------------+
+                           |
+                           v
+               +------------------------+
+               |   ContainerCreating    |
+               +------------------------+
+                           |
+                           v
+                       +-------+
+                       |Running|
+                       +-------+
+                          /|\
+                         / | \
+                 +---------+ +------------+
+                 | Succeeded |  Failed    |
+                 +-----------+------------+
+                         |
+                   +------------------+
+                   | Terminating (anytime)|
+                   +------------------+
+
+                    |
+IF POD CRASH : kubectl logs mypod
+
+| RestartPolicy | क्या होता है जब container fail होता है? |
+| ------------- | --------------------------------------- |
+| Always        | हमेशा दोबारा चलाया जाएगा (default)      |
+| OnFailure     | सिर्फ़ तब चलेगा जब exit code ≠ 0 हो     |
+| Never         | कभी नहीं चलेगा                          |
+
+Deployment हमेशा RestartPolicy: Always रखता है।
+
+Controller के कारण Pod का पुनर्जन्म
+-------------------------------
+अगर Pod manually delete हो गया, लेकिन वो Deployment का हिस्सा है, तो ReplicaSet उसे दोबारा बना देता है
+इससे Self-Healing संभव होती है (K8s की ताक़त!)
+
+
