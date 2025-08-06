@@ -1,0 +1,127 @@
+# Kubernetes Lab 2: Pods, ReplicaSets, Deployments
+
+## Objective
+
+This lab demonstrates the core concepts of Pods, ReplicaSets, and Deployments in Kubernetes. The tasks include:
+
+* Deploying an nginx application with 3 replicas
+* Scaling up and down the replicas
+* Restarting pods
+* Using `kubectl explain` and `kubectl describe`
+* Testing Kubernetes self-healing by deleting pods manually
+
+---
+
+## Environment
+
+* Control Plane: 1 VM on GCP
+* Workers: 2 VMs on GCP
+* kubectl configured to communicate with the cluster from the control plane
+
+---
+
+## Step-by-Step Execution
+
+### 1. Deploy nginx with 3 Replicas
+
+```bash
+kubectl create deployment nginx --image=nginx
+kubectl scale deployment nginx --replicas=3
+```
+
+**Verify:**
+
+```bash
+kubectl get pods -o wide
+kubectl get deployments
+```
+
+### 2. Scale Up and Down
+
+**Scale Up:**
+
+```bash
+kubectl scale deployment nginx --replicas=5
+```
+
+**Scale Down:**
+
+```bash
+kubectl scale deployment nginx --replicas=2
+```
+
+**Verify:**
+
+```bash
+kubectl get pods
+```
+
+### 3. Restart Pods
+
+```bash
+kubectl rollout restart deployment nginx
+```
+
+**Check Status:**
+
+```bash
+kubectl rollout status deployment nginx
+```
+
+### 4. Use `kubectl explain` and `describe`
+
+**Explain Resource Structure:**
+
+```bash
+kubectl explain pod
+kubectl explain deployment.spec.replicas
+```
+
+**Describe Deployment Details:**
+
+```bash
+kubectl describe deployment nginx
+```
+
+---
+
+### 5. Break it: Force Delete Pods
+
+```bash
+kubectl delete pod <pod-name> --grace-period=0 --force
+```
+
+**Watch Auto-Healing:**
+
+```bash
+kubectl get pods -w
+```
+
+> Kubernetes detects the missing replica and creates a new pod automatically.
+
+---
+
+## Monitoring & Observations
+
+* Pod distribution across worker nodes verified using `kubectl get pods -o wide`
+* When pods were deleted, new pods were automatically created
+* Deployment controller ensured the replica count was maintained
+
+---
+
+## Conclusion
+
+This lab demonstrates the fundamental Kubernetes concepts of managing stateless applications using Deployments. Kubernetes ensures high availability and fault-tolerance by automatically recreating pods when they are deleted or when nodes fail.
+
+---
+
+## Next Steps
+
+* Perform rolling updates
+* Introduce service exposure via NodePort or ClusterIP
+* Observe logs using `kubectl logs`
+* Use probes (readiness/liveness) to monitor application health
+
+---
+
+*Lab Completed Successfully.*
